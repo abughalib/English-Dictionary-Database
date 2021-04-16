@@ -1,2 +1,2 @@
 # English-Dictionary-Database
-It's an opensource English Dictionary defination 
+It's an opensource English Dictionary defination Database
