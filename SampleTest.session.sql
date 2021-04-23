@@ -1,0 +1,2 @@
+CREATE TABLE IF NOT EXISTS words(id integer PRIMARY key AUTOINCREMENT);
+INSERT INTO words VALUES('example');

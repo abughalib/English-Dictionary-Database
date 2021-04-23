@@ -1,0 +1,12 @@
+{
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "name": "SampleTest",
+      "database": "/home/abughalib/Documents/sample.db",
+      "group": "local"
+    }
+  ],
+  "sqltools.useNodeRuntime": true
+}
