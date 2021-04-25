@@ -1,0 +1,10 @@
+language: rust
+rust:
+  - "1.51"
+services:
+  - docker
+
+before_script: apk add docker-compose
+
+script:
+  - docker-compose run app sh -c "cargo test"
