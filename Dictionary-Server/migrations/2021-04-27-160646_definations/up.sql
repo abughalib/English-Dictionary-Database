@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS definition(
   id SERIAL PRIMARY KEY, 
   word TEXT NOT NULL,
-  meaning TEXT[][],
+  meaning TEXT[],
   antonyms TEXT[],
   synonyms TEXT[]
 );
