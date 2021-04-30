@@ -1,6 +1,6 @@
 use super::schema::definition;
 
-#[derive(QueryableByName, Queryable, Eq, PartialEq, Debug)]
+#[derive(QueryableByName, Queryable, Eq, PartialEq, Debug, Clone)]
 #[table_name="definition"]
 pub struct Definition{
   pub id: i32,

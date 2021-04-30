@@ -1,4 +1,4 @@
-use diesel::{insert_into, pg::PgConnection};
+use diesel::{dsl::exists, insert_into, pg::PgConnection, select};
 use diesel::prelude::*;
 
 use crate::models::{Definition, NewDefinition};
@@ -11,45 +11,61 @@ pub fn establish_connection() -> PgConnection {
   .expect(&format!("Error Connecting to {}", get_database_url()))
 }
 
-pub fn insert_definition<'a>(new_def: NewDefinition<'a>){
-  
-  let conn = establish_connection();
+pub fn insert_definition<'a>(conn: &PgConnection, new_def: NewDefinition<'a>)->Result<usize, String>{
 
-  match insert_into(definition)
-    .values(new_def)
-    .execute(&conn){
-      Ok(t)=>{
-        println!("{}", t);
-      },
-      Err(e)=>{
-        println!("{}", e);
+  let word_exists = select(
+    exists(definition.filter(word.eq(new_def.word)))
+  ).get_result(conn);
+
+  match word_exists{
+    Ok(true)=>{
+      return Err(String::from(format!("Cannot insert duplicate word")));
+    },
+    Ok(false)=>{
+      match insert_into(definition)
+        .values(new_def)
+        .execute(conn){
+        Ok(t)=>{
+          return Ok(t)
+        }
+        Err(_)=>{
+          return Err(String::from(format!("Cannot insert word")));
+        }
       }
     }
-}
-
-
-pub fn get_result(new_word: String)->Option<Vec<Definition>>{
-  let conn = establish_connection();
-  let result = definition
-    .filter(word.eq(new_word))
-    .limit(1)
-    .load::<Definition>(&conn);
-
-  match result{
-    Ok(vec_def)=>{
-      return Some(vec_def);
-    },
     Err(_)=>{
-      return None;
+      return Err(String::from(format!("Unknow Error")));
     }
   }
 }
 
-pub fn word_delete(new_word: String){
+pub fn get_result(conn: &PgConnection, new_word: String)->Result<Vec<Definition>, String>{
+  let def = definition
+    .filter(word.eq(new_word))
+    .limit(1)
+    .load::<Definition>(conn);
+
+  match def{
+    Ok(t)=>{
+      return Ok(t);
+    }
+    Err(_)=>{
+      return Err(String::from(format!("Cannot find word")))
+    }
+  }
+}
+
+pub fn delete_word(new_word: String)->Result<usize, String>{
   let conn = establish_connection();
-  diesel::delete(definition
+  match diesel::delete(definition
     .filter(word.eq(new_word)))
-    .execute(&conn)
-    .expect("Error Deleting Posts");
+    .execute(&conn){
+      Ok(t)=>{
+        Ok(t)
+      },
+      Err(_)=>{
+        Err(String::from(format!("Word not found")))
+      }
+    }
 
 }

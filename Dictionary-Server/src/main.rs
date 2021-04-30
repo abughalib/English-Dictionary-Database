@@ -10,7 +10,8 @@ extern crate diesel;
 extern crate dotenv;
 extern crate actix_rt;
 
-use actix_web::{App, HttpServer, web, Result};
+use actix_web::{App, HttpServer, HttpResponse, web};
+use database_op::establish_connection;
 use serde::Deserialize;
 
 use crate::database_op::get_result;
@@ -21,21 +22,28 @@ struct WordQuery{
   word: String,
 }
 
-async fn query_meaning(info: web::Json<WordQuery>)->Result<String>{
+async fn query_meaning(info: web::Json<WordQuery>)->HttpResponse{
 
-  let result = get_result((*info.word).to_string());
+  let conn = establish_connection();
+
+  let result = get_result(&conn, (*info.word).to_string());
 
   match result{
-    Some(def)=>{
+    Ok(def)=>{
       match def.get(1){
         Some(t)=>{
-          return Ok(format!("{:?}", t));
+          return HttpResponse::Ok().body(format!("{:?}", t));
         },
-        None=>{return Ok(format!("Meaning for {} is not available in our database", info.word));}
+        None=>{
+          return HttpResponse::Ok()
+            .body(
+              format!("Meaning for {} is not available in our database", info.word)
+            );
+        }
       }
     },
-    None=>{
-      return Ok(String::from("Some Unknown Error"))
+    Err(_)=>{
+      return HttpResponse::Ok().body(String::from("Some Unknown Error"));
     }
   }
 }
