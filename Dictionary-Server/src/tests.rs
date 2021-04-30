@@ -40,14 +40,30 @@ use super::super::*;
       antonyms: Some(vec![""]),
     };
 
-    insert_definition(&conn, new_def).ok().unwrap();
+    assert_eq!(insert_definition(&conn, new_def).is_ok(), true);
 
     let get_word: Definition = get_result(&conn, "test_word".to_string())
       .ok().unwrap()[0].clone();
 
-    delete_word("test_word".to_string()).ok().unwrap();
+    assert_eq!(delete_word("test_word".to_string()).is_ok(), true);
     assert_eq!(get_word.word, "test_word".to_string());
-    
+
   }
 
+  #[test]
+  fn test_database_deletion(){
+    let conn = establish_connection();
+    let new_def = NewDefinition{
+      word: "test_word",
+      meaning: Some(vec!["Some meaning"]),
+      synonyms: Some(vec!["somthing must be"]),
+      antonyms: Some(vec![""]),
+    };
+    assert_eq!(insert_definition(&conn, new_def).is_ok(), true);
+    assert_eq!(delete_word("test_word".to_string()).is_ok(), true);
+
+    let get_word= get_result(&conn, "test_word".to_string());
+    assert_eq!(get_word.ok().unwrap().len(), 0);
+
+  }
 }
