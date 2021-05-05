@@ -12,7 +12,7 @@ extern crate actix_rt;
 
 use actix_web::{App, HttpServer, HttpResponse, web};
 use database_op::establish_connection;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::database_op::get_result;
 
@@ -20,6 +20,11 @@ use crate::database_op::get_result;
 #[derive(Deserialize)]
 struct WordQuery{
   word: String,
+}
+
+#[derive(Serialize)]
+struct DefinitionResponse{
+  
 }
 
 async fn query_meaning(info: web::Json<WordQuery>)->HttpResponse{
