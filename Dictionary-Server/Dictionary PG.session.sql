@@ -1,1 +1,1 @@
-DELETE * FROM definition WHEN word="test_word";
+SELECT * FROM meaning
