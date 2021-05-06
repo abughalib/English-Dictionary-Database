@@ -13,7 +13,8 @@ pub struct Definition{
 #[derive(Queryable, QueryableByName, Eq, PartialEq, Debug, Clone)]
 #[table_name="meaning"]
 pub struct Meaning{
-  pub id: i32,
+  pub meaning_id: i32,
+  pub word: String,
   pub def: Vec<String>,
   pub keywords: Vec<String>
 }
@@ -27,9 +28,10 @@ pub struct NewDefinition<'a>{
   pub synonyms: Vec<&'a str>,
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, Clone)]
 #[table_name="meaning"]
 pub struct NewMeaning<'a>{
+  pub word: &'a str,
   pub def: Vec<&'a str>,
   pub keywords: Vec<&'a str>
 }
