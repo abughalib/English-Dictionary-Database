@@ -4,6 +4,7 @@ pub mod vars;
 pub mod database_op;
 pub mod tests;
 pub mod routes;
+pub mod populate_postgres;
 
 #[macro_use]
 extern crate diesel;
@@ -14,7 +15,7 @@ use actix_web::{App, HttpServer, HttpResponse, web};
 use database_op::establish_connection;
 use serde::{Deserialize, Serialize};
 
-use crate::database_op::get_result;
+use crate::database_op::{get_result};
 
 
 #[derive(Deserialize)]
@@ -22,9 +23,17 @@ struct WordQuery{
   word: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 struct DefinitionResponse{
-  
+  word: String,
+  meaning: Meaning,
+  synonyms: Vec<String>,
+  antonyms: Vec<String>,
+}
+#[derive(Serialize, Debug)]
+struct Meaning{
+  def: Vec<String>,
+  keywords: Vec<String>,
 }
 
 async fn query_meaning(info: web::Json<WordQuery>)->HttpResponse{
@@ -35,17 +44,16 @@ async fn query_meaning(info: web::Json<WordQuery>)->HttpResponse{
 
   match result{
     Ok(def)=>{
-      match def.get(1){
-        Some(t)=>{
-          return HttpResponse::Ok().body(format!("{:?}", t));
+      let def_resp = DefinitionResponse{
+        word: def.0.word,
+        meaning: Meaning{
+          def: def.1.def,
+          keywords: def.1.keywords
         },
-        None=>{
-          return HttpResponse::Ok()
-            .body(
-              format!("Meaning for {} is not available in our database", info.word)
-            );
-        }
-      }
+        synonyms: def.0.synonyms,
+        antonyms: def.0.antonyms
+      };
+      HttpResponse::Ok().body(format!("{:?}", def_resp))
     },
     Err(_)=>{
       return HttpResponse::Ok().body(String::from("Some Unknown Error"));

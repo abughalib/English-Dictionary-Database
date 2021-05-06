@@ -1,9 +1,10 @@
 #[cfg(test)]
 mod tests{
 
-  use crate::{database_op::{delete_word, establish_connection, insert_definition}, models::{Definition, NewDefinition}};
+  use crate::{database_op::{get_def, insert_meaning}, models::Definition};
+  use crate::{database_op::{delete_word, establish_connection, insert_definition}, models::{NewMeaning, NewDefinition}};
 
-use super::super::*;
+  use super::super::*;
   use super::super::routes::*;
 
   use actix_web::{http::StatusCode, web::Json};
@@ -33,16 +34,30 @@ use super::super::*;
   #[test]
   fn test_database_insertion(){
     let conn = establish_connection();
+    let new_meaning = NewMeaning{
+      def: vec!["Noun", "A fruit grows in cold area"],
+      keywords: vec!["fruit"]
+    };
+
+    let new_mean = NewMeaning{
+      def: vec!["Noun", "Some meaning here"],
+      keywords: vec!["test", "test_word"]
+    };
+
+    let index: i32 = insert_meaning(&conn, new_mean)
+      .ok().expect("Failed to insert meaning") as i32;
+
     let new_def = NewDefinition{
       word: "test_word",
-      meaning: Some(vec!["Some meaning"]),
-      synonyms: Some(vec!["somthing must be"]),
-      antonyms: Some(vec![""]),
+      meaning_id: &index,
+      synonyms: vec!["somthing must be"],
+      antonyms: vec![""],
     };
 
     assert_eq!(insert_definition(&conn, new_def).is_ok(), true);
+    assert_eq!(insert_meaning(&conn, new_meaning).is_ok(), true);
 
-    let get_word: Definition = get_result(&conn, "test_word".to_string())
+    let get_word: Definition = get_def(&conn, "test_word".to_string())
       .ok().unwrap()[0].clone();
 
     assert_eq!(delete_word("test_word".to_string()).is_ok(), true);
@@ -53,16 +68,26 @@ use super::super::*;
   #[test]
   fn test_database_deletion(){
     let conn = establish_connection();
-    let new_def = NewDefinition{
-      word: "test_word",
-      meaning: Some(vec!["Some meaning"]),
-      synonyms: Some(vec!["somthing must be"]),
-      antonyms: Some(vec![""]),
+
+    let new_mean = NewMeaning{
+      def: vec!["Noun", "Some meaning here"],
+      keywords: vec!["test", "test_word"]
     };
+
+    let index: i32 = insert_meaning(&conn, new_mean)
+      .ok().expect("Failed to insert meaning") as i32;
+
+    let new_def = NewDefinition{
+      meaning_id: &index,
+      word: "test_word",
+      antonyms: vec![],
+      synonyms: vec![]
+    };
+
     assert_eq!(insert_definition(&conn, new_def).is_ok(), true);
     assert_eq!(delete_word("test_word".to_string()).is_ok(), true);
 
-    let get_word= get_result(&conn, "test_word".to_string());
+    let get_word= get_def(&conn, "test_word".to_string());
     assert_eq!(get_word.ok().unwrap().len(), 0);
 
   }

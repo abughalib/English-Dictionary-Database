@@ -1,20 +1,35 @@
-use super::schema::definition;
+use super::schema::{definition, meaning};
 
 #[derive(QueryableByName, Queryable, Eq, PartialEq, Debug, Clone)]
 #[table_name="definition"]
 pub struct Definition{
-  pub id: i32,
+  pub word_id: i32,
   pub word: String,
-  pub meaning: Option<Vec<String>>,
-  pub antonyms: Option<Vec<String>>,
-  pub synonyms: Option<Vec<String>>
+  pub meaning_id: i32,
+  pub antonyms: Vec<String>,
+  pub synonyms: Vec<String>,
+}
+
+#[derive(Queryable, QueryableByName, Eq, PartialEq, Debug, Clone)]
+#[table_name="meaning"]
+pub struct Meaning{
+  pub id: i32,
+  pub def: Vec<String>,
+  pub keywords: Vec<String>
 }
 
 #[derive(Insertable)]
 #[table_name="definition"] 
 pub struct NewDefinition<'a>{
   pub word: &'a str,
-  pub meaning: Option<Vec<&'a str>>,
-  pub antonyms: Option<Vec<&'a str>>,
-  pub synonyms: Option<Vec<&'a str>>,
+  pub meaning_id: &'a i32,
+  pub antonyms: Vec<&'a str>,
+  pub synonyms: Vec<&'a str>,
+}
+
+#[derive(Insertable)]
+#[table_name="meaning"]
+pub struct NewMeaning<'a>{
+  pub def: Vec<&'a str>,
+  pub keywords: Vec<&'a str>
 }
