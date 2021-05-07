@@ -20,31 +20,36 @@ mod tests{
   }
 
   #[actix_rt::test]
-  async fn test_test_query_page(){
+  async fn test_json_query_page_meaning_not_found(){
     
     let info = WordQuery{
-      word: "apple".to_string()
+      word: "u4893754tgjkhdfu".to_string()
     };
 
     let info_json = Json::<WordQuery>(info);
     let resp = query_meaning(info_json).await;
-    assert_eq!(resp.status(), StatusCode::OK);
-  
+    assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+
   }
-  #[test]
-  fn test_database_insertion(){
+  #[actix_rt::test]
+  async fn test_json_query_page_meaning_found(){
+    
+    let info = WordQuery{
+      word: "u4893754tgjkhdfu".to_string()
+    };
+
     let conn = establish_connection();
     let new_meaning = NewMeaning{
-      word: "apple",
-      def: vec!["Noun", "A fruit grows in cold region"],
-      keywords: vec!["fruit"]
+      word: "u4893754tgjkhdfu",
+      def: vec!["Unknown", "Definition not known"],
+      keywords: vec!["unknown"]
     };
 
     let index: i32 = insert_meaning(&conn, new_meaning)
       .ok().expect("Failed to insert meaning");
 
     let new_def = NewDefinition{
-      word: "apple",
+      word: "u4893754tgjkhdfu",
       meaning_id: &index,
       synonyms: vec!["if any"],
       antonyms: vec!["if any"],
@@ -52,11 +57,40 @@ mod tests{
 
     assert_eq!(insert_definition(&conn, new_def).is_ok(), true);
 
-    let get_word: Definition = get_def(&conn, "apple".to_string())
+    let info_json = Json::<WordQuery>(info);
+    let resp = query_meaning(info_json).await;
+    assert_eq!(resp.status(), StatusCode::OK);
+
+    assert_eq!(delete_word("u4893754tgjkhdfu".to_string()).is_ok(), true);
+
+  }
+
+  #[test]
+  fn test_database_insertion(){
+    let conn = establish_connection();
+    let new_meaning = NewMeaning{
+      word: "some_unknown_word",
+      def: vec!["Unknown", "Definition not known"],
+      keywords: vec!["unknown"]
+    };
+
+    let index: i32 = insert_meaning(&conn, new_meaning)
+      .ok().expect("Failed to insert meaning");
+
+    let new_def = NewDefinition{
+      word: "some_unknown_word",
+      meaning_id: &index,
+      synonyms: vec!["if any"],
+      antonyms: vec!["if any"],
+    };
+
+    assert_eq!(insert_definition(&conn, new_def).is_ok(), true);
+
+    let get_word: Definition = get_def(&conn, "some_unknown_word".to_string())
       .ok().unwrap()[0].clone();
 
-    assert_eq!(delete_word("apple".to_string()).is_ok(), true);
-    assert_eq!(get_word.word, "apple".to_string());
+    assert_eq!(delete_word("some_unknown_word".to_string()).is_ok(), true);
+    assert_eq!(get_word.word, "some_unknown_word".to_string());
 
   }
 
@@ -64,26 +98,26 @@ mod tests{
   fn test_database_deletion(){
     let conn = establish_connection();
 
-    let new_mean = NewMeaning{
-      word: "test_word",
-      def: vec!["Noun", "Some meaning here"],
-      keywords: vec!["test", "test_word"]
+    let new_meaning = NewMeaning{
+      word: "some_unknown_2",
+      def: vec!["Unknown", "Definition not known"],
+      keywords: vec!["unknown"]
     };
 
-    let index: i32 = insert_meaning(&conn, new_mean)
+    let index: i32 = insert_meaning(&conn, new_meaning)
       .ok().expect("Failed to insert meaning");
 
     let new_def = NewDefinition{
+      word: "some_unknown_2",
       meaning_id: &index,
-      word: "test_word",
-      antonyms: vec![""],
-      synonyms: vec![""]
+      synonyms: vec!["if any"],
+      antonyms: vec!["if any"],
     };
 
     assert_eq!(insert_definition(&conn, new_def).is_ok(), true);
-    assert_eq!(delete_word("test_word".to_string()).is_ok(), true);
+    assert_eq!(delete_word("some_unknown_2".to_string()).is_ok(), true);
 
-    let get_word= get_def(&conn, "test_word".to_string());
+    let get_word= get_def(&conn, "some_unknown_2".to_string());
     assert_eq!(get_word.ok().unwrap().len(), 0);
 
   }

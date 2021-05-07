@@ -55,8 +55,8 @@ async fn query_meaning(info: web::Json<WordQuery>)->HttpResponse{
       };
       HttpResponse::Ok().body(format!("{:?}", def_resp))
     },
-    Err(_)=>{
-      return HttpResponse::Ok().body(String::from("Some Unknown Error"));
+    Err(e)=>{
+      return HttpResponse::NotFound().body(String::from(format!("{}", e)))
     }
   }
 }
