@@ -11,14 +11,13 @@ extern crate diesel;
 extern crate dotenv;
 extern crate actix_rt;
 
-use actix_web::{App, HttpServer, HttpResponse, web};
+use actix_web::{App, HttpResponse, HttpServer, guard, web};
 use database_op::establish_connection;
 use serde::{Deserialize, Serialize};
+use actix_cors::Cors;
+use crate::database_op::get_result;
 
-use crate::database_op::{get_result};
-
-
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct WordQuery{
   word: String,
 }
@@ -40,7 +39,7 @@ async fn query_meaning(info: web::Json<WordQuery>)->HttpResponse{
 
   let conn = establish_connection();
 
-  let result = get_result(&conn, (*info.word).to_string());
+  let result = get_result(&conn, (*info.word.to_uppercase()).to_string());
 
   match result{
     Ok(def)=>{
@@ -53,7 +52,9 @@ async fn query_meaning(info: web::Json<WordQuery>)->HttpResponse{
         synonyms: def.0.synonyms,
         antonyms: def.0.antonyms
       };
-      HttpResponse::Ok().body(format!("{:?}", def_resp))
+      HttpResponse::Ok()
+        .content_type("application/json")
+        .body(format!("{:?}", def_resp))
     },
     Err(e)=>{
       return HttpResponse::NotFound().body(String::from(format!("{}", e)))
@@ -61,25 +62,24 @@ async fn query_meaning(info: web::Json<WordQuery>)->HttpResponse{
   }
 }
 
-// #[actix_web::main]
-// async fn main()->std::io::Result<()>{
-//   HttpServer::new(|| {
-//     App::new()
-//     .route("/", web::get().to(routes::index))
-//         .service(web::scope("/dict")
-//             .route("api", web::post().to(query_meaning))
-//       )
-//   })
-//     .bind(("127.0.0.1", 8080))?
-//     .run()
-//     .await
-
-// }
-
-fn main(){
-
-  use populate_postgres::*;
-
-  load_json();
+#[actix_web::main]
+async fn main()->std::io::Result<()>{
+  HttpServer::new(|| {
+    App::new()
+        .wrap(
+          Cors::default()
+            .allow_any_origin()
+            .allowed_methods(vec!["GET", "POST"])
+            .max_age(3600)
+        )
+    .route("/", web::get().to(routes::index))
+      .service(web::scope("/dict")
+        .guard(guard::Header("content-type", "application/json"))
+        .route("api", web::post().to(query_meaning))
+    )
+  })
+    .bind(("127.0.0.1", 8000))?
+    .run()
+    .await
 
 }
