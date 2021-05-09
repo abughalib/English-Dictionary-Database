@@ -61,17 +61,25 @@ async fn query_meaning(info: web::Json<WordQuery>)->HttpResponse{
   }
 }
 
-#[actix_web::main]
-async fn main()->std::io::Result<()>{
-  HttpServer::new(|| {
-    App::new()
-    .route("/", web::get().to(routes::index))
-        .service(web::scope("/dict")
-            .route("api", web::post().to(query_meaning))
-      )
-  })
-    .bind(("127.0.0.1", 8080))?
-    .run()
-    .await
+// #[actix_web::main]
+// async fn main()->std::io::Result<()>{
+//   HttpServer::new(|| {
+//     App::new()
+//     .route("/", web::get().to(routes::index))
+//         .service(web::scope("/dict")
+//             .route("api", web::post().to(query_meaning))
+//       )
+//   })
+//     .bind(("127.0.0.1", 8080))?
+//     .run()
+//     .await
+
+// }
+
+fn main(){
+
+  use populate_postgres::*;
+
+  load_json();
 
 }

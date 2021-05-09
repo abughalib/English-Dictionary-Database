@@ -27,29 +27,29 @@ pub fn load_json(){
   words.read_to_string(&mut words_str)
   .ok().expect("Cannot parse words to string");
 
-  let mut i: usize = 0;
-
   let mut dict_file = File::open(
-    "assets/DB_mod.json").unwrap();
+    "assets/DA_mod.json").expect("Failed to open First File");
   
   let mut dict_str = String::new();
-  dict_file.read_to_string(&mut dict_str).ok().unwrap();
+  dict_file.read_to_string(&mut dict_str).ok()
+  .expect("Failed to convert dict_file to dict_str && word");
 
   let mut dict_json: Value = serde_json::from_str(
   dict_str.as_str()).ok().expect("Failed to load json from str");
 
   for word in words_str.split_whitespace(){
     
-    if word_char != word.chars().nth(0).unwrap(){
+    if word_char != word.chars().nth(0).expect(format!("No First Char of word: {}", word).as_str()){
       word_char = word.chars().nth(0).unwrap();
       let mut dict_file = File::open(
       format!("assets/D{}_mod.json", word_char)
       ).ok().unwrap();
-
-      dict_file.read_to_string(&mut dict_str).ok().unwrap();
-
+      dict_str = String::new();
+      dict_file.read_to_string(&mut dict_str).ok()
+      .expect("Failed to convert dict_file to dict_str");
       dict_json = serde_json::from_str(
-      dict_str.as_str()).ok().unwrap();
+      dict_str.as_str()).ok()
+      .expect(format!("Failed to convert dict_file to dict_json, Word: {}", word).as_str());
     }
 
     println!("{}", word);
@@ -94,9 +94,8 @@ fn insert_parsed_meaning<'a>(word: String, meaning: Value)->i32{
 
   println!("DEF: {:?} \nKeywords: {:?}", new_meaning.def, new_meaning.keywords);
 
-  //let conn = establish_connection();
-  //return insert_meaning(&conn, new_meaning).ok().unwrap();
-  0
+  let conn = establish_connection();
+  return insert_meaning(&conn, new_meaning).ok().unwrap();
 }
 
 fn insert_parsed_definition<'a>(word: String, meaning_id: &i32, dict: Value){
@@ -125,7 +124,7 @@ fn insert_parsed_definition<'a>(word: String, meaning_id: &i32, dict: Value){
       antonyms = vec![""]
     }
   }
-  //let conn = establish_connection();
+  let conn = establish_connection();
 
   let new_def = NewDefinition{
     word: word.as_str(),
@@ -136,5 +135,5 @@ fn insert_parsed_definition<'a>(word: String, meaning_id: &i32, dict: Value){
 
   println!("Antonyms: {:?}\nSynonyms: {:?}", new_def.antonyms, new_def.synonyms);
 
-  //insert_definition(&conn, new_def).ok().expect("Failed to insert word");
+  insert_definition(&conn, new_def).ok().expect("Failed to insert word");
 }
