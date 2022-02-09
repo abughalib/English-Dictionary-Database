@@ -1,9 +1,10 @@
-use std::{fs::File, io::Read};
 
+
+use std::{fs::File, io::Read};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{database_op::{establish_connection, insert_definition, insert_meaning}, models::{NewDefinition, NewMeaning}};
+use dictionary_server::{database_op::{establish_connection, insert_definition, insert_meaning}, models::{NewDefinition, NewMeaning}};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WordJson{
@@ -136,4 +137,8 @@ fn insert_parsed_definition<'a>(word: String, meaning_id: &i32, dict: Value){
   println!("Antonyms: {:?}\nSynonyms: {:?}", new_def.antonyms, new_def.synonyms);
 
   insert_definition(&conn, new_def).ok().expect("Failed to insert word");
+}
+
+fn main(){
+  load_json();
 }

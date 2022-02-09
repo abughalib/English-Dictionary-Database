@@ -3,9 +3,8 @@ mod tests{
 
   use crate::{database_op::{get_def, insert_meaning}, models::Definition};
   use crate::{database_op::{delete_word, establish_connection, insert_definition}, models::{NewMeaning, NewDefinition}};
-
-  use super::super::*;
   use super::super::routes::*;
+  use super::super::models::QueryWord;
 
   use actix_web::{http::StatusCode, web::Json};
   #[actix_rt::test]
@@ -21,12 +20,13 @@ mod tests{
 
   #[actix_rt::test]
   async fn test_json_query_page_meaning_not_found(){
-    
-    let info = WordQuery{
+
+
+    let info = QueryWord{
       word: "ejgiofdpsoigs8943t34543".to_string()
     };
 
-    let info_json = Json::<WordQuery>(info);
+    let info_json = Json::<QueryWord>(info);
     let resp = query_meaning(info_json).await;
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);
 

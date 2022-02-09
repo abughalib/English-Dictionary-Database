@@ -7,22 +7,17 @@ pub fn get_database_url()->String{
   let url = env::var("DB_URL")
   .expect("DATABASE_URL must be set to .env");
 
-  let database_url = String::from(
-    format!(
-      "postgres://{}:{}@{}", get_database_user(), 
-      get_database_password(), url
-    ));
-  return database_url;
+  return url;
 }
 
-pub fn get_database_user()->String{
+pub fn get_host_path()-> (String, u16){
   dotenv().ok();
-  env::var("DB_USER")
-    .expect("DATABASE_USER must be set in .env")
-}
+  let host = env::var("HOST")
+    .expect("HOST not defined");
+  
+  let port = env::var("PORT")
+    .expect("PORT not defined").parse()
+    .ok().expect("PORT must be Unsigned Integer");
 
-pub fn get_database_password()->String{
-  dotenv().ok();
-  env::var("DB_PASS")
-    .expect("DATABASE_PASSWORD must be set in .env")
+  return (host, port)
 }
