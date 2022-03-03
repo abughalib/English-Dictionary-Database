@@ -94,7 +94,14 @@ fn insert_parsed_meaning<'a>(word: String, meaning: Value)->i32{
   println!("DEF: {:?} \nKeywords: {:?}", new_meaning.def, new_meaning.keywords);
 
   let conn = establish_connection();
-  return insert_meaning(&conn, new_meaning).ok().unwrap();
+  match insert_meaning(&conn, new_meaning){
+    Ok(index)=>{
+      return index;
+    },
+    Err(e)=>{
+      panic!("Cannot insert value: {:?}", e);
+    }
+  }
 }
 
 fn insert_parsed_definition<'a>(word: String, meaning_id: &i32, dict: Value){

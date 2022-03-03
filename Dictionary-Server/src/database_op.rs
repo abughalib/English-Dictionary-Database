@@ -50,9 +50,8 @@ pub fn insert_meaning(conn: &PgConnection, new_meaning: NewMeaning)->Result<i32,
         ).ok().unwrap();
         return Ok(result[0].meaning_id);
       },
-      Err(_)=>{}
+      Err(e)=>{ return Err(e.to_string())}
     }
-  Err("Unknown Error".to_string())
 }
 
 pub fn get_def(conn: &PgConnection, new_word: String)->Result<Vec<Definition>, String>{

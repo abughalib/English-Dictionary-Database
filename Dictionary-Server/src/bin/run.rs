@@ -21,7 +21,7 @@ async fn main()->std::io::Result<()>{
     .route("/help", web::get().to(help))
     .service(web::scope("/dict")
     .guard(guard::Header("content-type", "application/json"))
-    .route("api", web::post().to(query_meaning))
+    .route("api", web::get().to(query_meaning))
 )
   })
     .bind(get_host_path())?

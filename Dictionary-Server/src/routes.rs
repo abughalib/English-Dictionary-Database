@@ -63,8 +63,8 @@ pub async fn query_meaning(info: web::Json<QueryWord>)->HttpResponse{
         .content_type("application/json")
         .body(format!("{:?}", def_resp))
     },
-    Err(e)=>{
-      return HttpResponse::NotFound().body(String::from(format!("{}", e)))
+    Err(_)=>{
+      return HttpResponse::NotFound().body(String::from(format!("Cannot find meaning of {}", info.word)))
     }
   }
 }
