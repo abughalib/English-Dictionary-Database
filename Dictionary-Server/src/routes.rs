@@ -68,3 +68,54 @@ pub async fn query_meaning(info: web::Json<QueryWord>)->HttpResponse{
     }
   }
 }
+
+pub async fn page_not_found()-> HttpResponse{
+
+  let resp = r#"
+    <style>
+    body{
+      font-family: 'Merriweather', serif;
+      margin: 0;
+      background-color: #9cc3d5;
+      text-align: center;
+      color: white;
+      user-select: none;
+      padding-top: 18vh;
+  }
+  .container{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      background-color: #5ca3dd93;
+  }
+  h2{
+      font-size: 150px;
+      margin: 0;
+      text-shadow: 15px 5px 2px black;
+  }
+  h3{
+      font-size: 40px;
+      margin: 20px;
+  }
+  p{
+      font-size: 18px;
+      margin: 5px;
+  }
+  p:last-of-type{
+      margin-bottom: 35px;
+  }
+  a{
+      text-decoration: none;
+      
+  }
+    </style>
+    <div class="container">
+        <h2>404</h2>
+        <h3>Oops, nothing here...</h3>
+        <h3>Go Back <a href="/help">Click Here</a></h3>
+    </div>
+  "#;
+  
+  HttpResponse::NotFound().body(resp)
+}

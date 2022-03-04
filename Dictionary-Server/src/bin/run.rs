@@ -3,7 +3,7 @@ extern crate actix_rt;
 extern crate dictionary_server;
 
 use actix_web::{App, HttpServer, guard, web};
-use dictionary_server::routes::{index, help, query_meaning};
+use dictionary_server::routes::{index, help, query_meaning, page_not_found};
 use dictionary_server::vars::get_host_path;
 use actix_cors::Cors;
 
@@ -21,8 +21,14 @@ async fn main()->std::io::Result<()>{
     .route("/help", web::get().to(help))
     .service(web::scope("/dict")
     .guard(guard::Header("content-type", "application/json"))
-    .route("api", web::get().to(query_meaning))
-)
+    .route("api", web::post().to(query_meaning))
+  )
+  .default_service(
+    web::route()
+    .guard(guard::Not(guard::Get()))
+    .to(page_not_found)
+  )
+
   })
     .bind(get_host_path())?
     .run()
