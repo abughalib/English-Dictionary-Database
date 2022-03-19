@@ -7,8 +7,8 @@ It's an opensource English Dictionary definition Database
 Configure the .env file<br>
 ```
 DB_URL=localhost/dictionary
-DB_USER=abughalib
-DB_PASS=abughalib
+DB_USER=username
+DB_PASS=password
 ```
 DB_URL -> Database url.<br>
 DB_USER -> Database user.<br>
