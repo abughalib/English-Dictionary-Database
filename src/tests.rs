@@ -1,12 +1,13 @@
 #[cfg(test)]
 mod tests{
 
-  use crate::{database_op::{get_def, insert_meaning}, models::Definition};
-  use crate::{database_op::{delete_word, establish_connection, insert_definition}, models::{NewMeaning, NewDefinition}};
-  use super::super::routes::*;
-  use super::super::models::QueryWord;
+  use actix_web::{http::StatusCode, web::Json, Error};
+  use diesel::{Connection, RunQueryDsl};
+  use crate::database_op::establish_connection;
+  use crate::models::{NewMeaning, NewDefinition};
+  use crate::routes::*;
+  use crate::models::QueryWord;
 
-  use actix_web::{http::StatusCode, web::Json};
   #[actix_rt::test]
   async fn test_index(){
 
@@ -31,48 +32,9 @@ mod tests{
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);
 
   }
-  // #[actix_rt::test]
-  // async fn test_json_query_page_meaning_found(){
-    
-  //   let info = WordQuery{
-  //     word: "u4893754tgjkhdfu".to_string()
-  //   };
-
-  //   let conn = establish_connection();
-  //   let new_meaning = NewMeaning{
-  //     word: "u4893754tgjkhdfu",
-  //     def: vec!["Unknown", "Definition not known"],
-  //     keywords: vec!["unknown"]
-  //   };
-
-  //   let index: i32 = match  insert_meaning(&conn, new_meaning.clone()){
-  //     Ok(t)=>t,
-  //     Err(_)=>{
-  //       delete_word("u4893754tgjkhdfu".to_string())
-  //       .ok().expect("Failed to delete!");
-  //       insert_meaning(&conn, new_meaning).ok()
-  //       .expect("Failed to insert meaning")
-  //     }
-  //   };
-
-  //   let new_def = NewDefinition{
-  //     word: "u4893754tgjkhdfu",
-  //     meaning_id: &index,
-  //     synonyms: vec!["if any"],
-  //     antonyms: vec!["if any"],
-  //   };
-
-  //   assert_eq!(insert_definition(&conn, new_def).is_ok(), true);
-  //   let info_json = Json::<WordQuery>(info);
-  //   let resp = query_meaning(info_json).await;
-  //   assert_eq!(resp.status(), StatusCode::OK);
-
-  //   assert_eq!(delete_word("u4893754tgjkhdfu".to_string()).is_ok(), true);
-
-  //}
 
   #[test]
-  fn test_database_insertion(){
+  fn test_database_insertion() {
     let conn = establish_connection();
     let new_meaning = NewMeaning{
       word: "some_unknown_word",
@@ -80,23 +42,31 @@ mod tests{
       keywords: vec!["unknown"]
     };
 
-    let index: i32 = insert_meaning(&conn, new_meaning)
-      .ok().expect("Failed to insert meaning");
+    use crate::schema::meaning::dsl::meaning;
+    use crate::schema::definition::dsl::definition;
+
+    conn.test_transaction::<_, Error, _>(|| {
+      diesel::insert_into(meaning)
+      .values(new_meaning)
+      .execute(&conn).ok();
+
+      Ok(())
+    });
 
     let new_def = NewDefinition{
       word: "some_unknown_word",
-      meaning_id: &index,
+      meaning_id: &1i32,
       synonyms: vec!["if any"],
       antonyms: vec!["if any"],
     };
 
-    assert_eq!(insert_definition(&conn, new_def).is_ok(), true);
+    conn.test_transaction::<_, Error, _>(|| {
+      diesel::insert_into(definition)
+      .values(new_def)
+      .execute(&conn).ok();
 
-    let get_word: Definition = get_def(&conn, "some_unknown_word".to_string())
-      .ok().unwrap()[0].clone();
-
-    assert_eq!(delete_word("some_unknown_word".to_string()).is_ok(), true);
-    assert_eq!(get_word.word, "some_unknown_word".to_string());
+      Ok(())
+    });
 
   }
 
@@ -104,27 +74,25 @@ mod tests{
   fn test_database_deletion(){
     let conn = establish_connection();
 
-    let new_meaning = NewMeaning{
-      word: "some_unknown_2",
-      def: vec!["Unknown", "Definition not known"],
-      keywords: vec!["unknown"]
-    };
+    use crate::schema::meaning::dsl::{meaning, meaning_id};
+    use crate::schema::definition::dsl::{definition, word_id};
+    use diesel::prelude::*;
 
-    let index: i32 = insert_meaning(&conn, new_meaning)
-      .ok().expect("Failed to insert meaning");
+    conn.test_transaction::<_, Error, _>(|| {
+      diesel::delete(meaning)
+      .filter(meaning_id.eq(1))
+      .execute(&conn).ok();
 
-    let new_def = NewDefinition{
-      word: "some_unknown_2",
-      meaning_id: &index,
-      synonyms: vec!["if any"],
-      antonyms: vec!["if any"],
-    };
+      Ok(())
+    });
 
-    assert_eq!(insert_definition(&conn, new_def).is_ok(), true);
-    assert_eq!(delete_word("some_unknown_2".to_string()).is_ok(), true);
+    conn.test_transaction::<_, Error, _>(|| {
+      diesel::delete(definition)
+      .filter(word_id.eq(1))
+      .execute(&conn).ok();
 
-    let get_word= get_def(&conn, "some_unknown_2".to_string());
-    assert_eq!(get_word.ok().unwrap().len(), 0);
+      Ok(())
+    });
 
   }
 }
