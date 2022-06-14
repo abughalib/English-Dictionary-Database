@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     command: >
-      sh -c "cargo test"
+      sh -c "cd Dictionary-Server && cargo test"
     environment:
       - DB_HOST=db
       - DB_NAME=app

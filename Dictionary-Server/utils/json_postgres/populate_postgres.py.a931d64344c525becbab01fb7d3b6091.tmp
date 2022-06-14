@@ -1,0 +1,3 @@
+import psycopg2
+
+dict_words
