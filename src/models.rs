@@ -7,8 +7,8 @@ pub struct Definition{
   pub word_id: i32,
   pub word: String,
   pub meaning_id: i32,
-  pub antonyms: Vec<String>,
-  pub synonyms: Vec<String>,
+  pub antonyms: Vec<Option<String>>,
+  pub synonyms: Vec<Option<String>>,
 }
 
 #[derive(Queryable, QueryableByName, Eq, PartialEq, Debug, Clone)]
@@ -16,8 +16,8 @@ pub struct Definition{
 pub struct Meaning{
   pub meaning_id: i32,
   pub word: String,
-  pub def: Vec<String>,
-  pub keywords: Vec<String>
+  pub def: Vec<Option<String>>,
+  pub keywords: Vec<Option<String>>
 }
 
 #[derive(Insertable)]
@@ -46,11 +46,11 @@ pub struct QueryWord{
 pub struct QueryDefinition{
   pub word: String,
   pub meaning: QueryMeaning,
-  pub synonyms: Vec<String>,
-  pub antonyms: Vec<String>,
+  pub synonyms: Vec<Option<String>>,
+  pub antonyms: Vec<Option<String>>
 }
 #[derive(Serialize, Debug)]
 pub struct QueryMeaning{
-  pub def: Vec<String>,
-  pub keywords: Vec<String>,
+  pub def: Vec<Option<String>>,
+  pub keywords: Vec<Option<String>>,
 }
