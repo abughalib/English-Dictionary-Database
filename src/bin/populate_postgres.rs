@@ -130,7 +130,7 @@ fn insert_parsed_definition<'a>(word: String, meaning_id: &i32, dict: Value){
       antonyms = vec![""]
     }
   }
-  let conn = establish_connection();
+  let mut conn = establish_connection();
 
   let new_def = NewDefinition{
     word: word.as_str(),
@@ -141,7 +141,7 @@ fn insert_parsed_definition<'a>(word: String, meaning_id: &i32, dict: Value){
 
   println!("Antonyms: {:?}\nSynonyms: {:?}", new_def.antonyms, new_def.synonyms);
 
-  insert_definition(&conn, new_def).ok().expect("Failed to insert word");
+  insert_definition(&mut conn, new_def).ok().expect("Failed to insert word");
 }
 
 fn main(){
