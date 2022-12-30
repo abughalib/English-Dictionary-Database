@@ -3,7 +3,7 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(QueryableByName, Queryable, Eq, PartialEq, Debug, Clone)]
-#[table_name = "definition"]
+#[diesel(table_name = definition)]
 pub struct Definition {
     pub word_id: i32,
     pub word: String,
@@ -13,7 +13,7 @@ pub struct Definition {
 }
 
 #[derive(Queryable, QueryableByName, Eq, PartialEq, Debug, Clone)]
-#[table_name = "meaning"]
+#[diesel(table_name = meaning)]
 pub struct Meaning {
     pub meaning_id: i32,
     pub word: String,
@@ -22,7 +22,7 @@ pub struct Meaning {
 }
 
 #[derive(Insertable)]
-#[table_name = "definition"]
+#[diesel(table_name = definition)]
 pub struct NewDefinition<'a> {
     pub word: &'a str,
     pub meaning_id: &'a i32,
@@ -31,7 +31,7 @@ pub struct NewDefinition<'a> {
 }
 
 #[derive(Insertable, Clone)]
-#[table_name = "meaning"]
+#[diesel(table_name = meaning)]
 pub struct NewMeaning<'a> {
     pub word: &'a str,
     pub def: Vec<&'a str>,
