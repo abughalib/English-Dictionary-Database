@@ -55,3 +55,9 @@ pub struct QueryMeaning {
     pub def: Vec<Option<String>>,
     pub keywords: Vec<Option<String>>,
 }
+
+#[derive(Serialize, QueryableByName, Deserialize)]
+#[diesel(table_name = meaning)]
+pub struct SearchWord {
+    pub word: String
+}

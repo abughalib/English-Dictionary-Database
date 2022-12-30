@@ -90,7 +90,7 @@ pub fn get_result(
     conn: &mut PgConnection,
     query_word: String,
 ) -> Result<(Definition, Meaning), String> {
-    let defin = get_def(conn, query_word.clone())?;
+    let defin: Vec<Definition> = get_def(conn, query_word.clone())?;
 
     if defin.len() == 0 {
         return Err("Cannot find definition".to_string());
@@ -98,4 +98,20 @@ pub fn get_result(
     let mean = get_mean(conn, query_word)?;
 
     return Ok((defin[0].clone(), mean[0].clone()));
+}
+
+pub fn search_words(query: String) -> Result<Vec<String>, String> {
+    use super::schema::definition::dsl::*;
+    let mut conn = establish_connection();
+
+    let words: Result<Vec<String>, Error> = definition
+        .select(word)
+        .filter(word.like(format!("%{}%", query.to_uppercase())))
+        .limit(10)
+        .load::<String>(&mut conn);
+
+    match words {
+        Ok(t) => Ok(t),
+        Err(e) => return Err(format!("{}", e)),
+    }
 }

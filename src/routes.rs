@@ -1,3 +1,5 @@
+use crate::database_op::search_words;
+
 use super::database_op::establish_connection;
 use super::database_op::get_result;
 use super::models::*;
@@ -72,6 +74,20 @@ pub async fn query_meaning(info: web::Json<QueryWord>) -> HttpResponse {
                 info.word
             )))
         }
+    }
+}
+
+pub async fn query_words(query: web::Json<SearchWord>) -> HttpResponse {
+    let result = search_words(query.0.word.clone());
+
+    match result {
+        Ok(words) => HttpResponse::Ok()
+            .content_type("application/json")
+            .json(web::Json(words)),
+        Err(_e) => HttpResponse::NotFound().body(String::from(format!(
+            "Cannnot find words starting with {}",
+            query.word
+        ))),
     }
 }
 
