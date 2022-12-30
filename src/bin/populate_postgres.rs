@@ -93,8 +93,8 @@ fn insert_parsed_meaning<'a>(word: String, meaning: Value)->i32{
 
   println!("DEF: {:?} \nKeywords: {:?}", new_meaning.def, new_meaning.keywords);
 
-  let conn = establish_connection();
-  match insert_meaning(&conn, new_meaning){
+  let mut conn = establish_connection();
+  match insert_meaning(&mut conn, new_meaning){
     Ok(index)=>{
       return index;
     },
