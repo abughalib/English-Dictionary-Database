@@ -1,15 +1,15 @@
-use actix_web::{HttpResponse, web};
-use super::models::*;
 use super::database_op::establish_connection;
 use super::database_op::get_result;
+use super::models::*;
+use actix_web::{web, HttpResponse};
 
-pub async fn index()->HttpResponse{
-  HttpResponse::Ok().body("<h1>For Help: Get Request /help</h1>")
+pub async fn index() -> HttpResponse {
+    HttpResponse::Ok().body("<h1>For Help: Get Request /help</h1>")
 }
 
-pub async fn help()->HttpResponse{
-  
-  let style = String::from("
+pub async fn help() -> HttpResponse {
+    let style = String::from(
+        "
     <style>
       .uses{
         display: flex;
@@ -24,9 +24,11 @@ pub async fn help()->HttpResponse{
         width: auto;
       }
     </style>
-  ");
-  
-  let reponse = String::from(r#"
+  ",
+    );
+
+    let reponse = String::from(
+        r#"
     <div class='uses'>
       <h1 class='uses-title'>API USES</h1>
       POST: /dict/api<br>
@@ -36,42 +38,45 @@ pub async fn help()->HttpResponse{
         <span>  </span>'word': 'word'<br>
       }<br>
     </div>
-  "#);
+  "#,
+    );
 
-  HttpResponse::Ok().content_type("text/html").body(style+&reponse)
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .body(style + &reponse)
 }
 
-pub async fn query_meaning(info: web::Json<QueryWord>)->HttpResponse{
+pub async fn query_meaning(info: web::Json<QueryWord>) -> HttpResponse {
+    let mut conn = establish_connection();
 
-  let conn = establish_connection();
+    let result = get_result(&mut conn, (*info.word.to_uppercase()).to_string());
 
-  let result = get_result(&conn, 
-    (*info.word.to_uppercase()).to_string());
-
-  match result{
-    Ok(def)=>{
-      let def_resp = QueryDefinition{
-        word: def.0.word,
-        meaning: QueryMeaning{
-          def: def.1.def,
-          keywords: def.1.keywords
-        },
-        synonyms: def.0.synonyms,
-        antonyms: def.0.antonyms
-      };
-      HttpResponse::Ok()
-        .content_type("application/json")
-        .json(web::Json(def_resp))
-    },
-    Err(_)=>{
-      return HttpResponse::NotFound().body(String::from(format!("Cannot find meaning of {}", info.word)))
+    match result {
+        Ok(def) => {
+            let def_resp = QueryDefinition {
+                word: def.0.word,
+                meaning: QueryMeaning {
+                    def: def.1.def,
+                    keywords: def.1.keywords,
+                },
+                synonyms: def.0.synonyms,
+                antonyms: def.0.antonyms,
+            };
+            HttpResponse::Ok()
+                .content_type("application/json")
+                .json(web::Json(def_resp))
+        }
+        Err(_) => {
+            return HttpResponse::NotFound().body(String::from(format!(
+                "Cannot find meaning of {}",
+                info.word
+            )))
+        }
     }
-  }
 }
 
-pub async fn page_not_found()-> HttpResponse{
-
-  let resp = r#"
+pub async fn page_not_found() -> HttpResponse {
+    let resp = r#"
     <style>
     body{
       font-family: 'Merriweather', serif;
@@ -116,6 +121,6 @@ pub async fn page_not_found()-> HttpResponse{
         <h3>Go Back <a href="/help">Click Here</a></h3>
     </div>
   "#;
-  
-  HttpResponse::NotFound().body(resp)
+
+    HttpResponse::NotFound().body(resp)
 }
