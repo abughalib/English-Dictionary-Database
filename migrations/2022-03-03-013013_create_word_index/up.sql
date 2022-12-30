@@ -1,2 +1,2 @@
 -- Your SQL goes here
-CREATE INDEX CONCURRENTLY word ON meaning USING HASH(word);
+CREATE INDEX word ON meaning USING HASH(word);

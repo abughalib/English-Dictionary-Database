@@ -1,25 +1,27 @@
-table! {
-  definition (word_id) {
-      word_id -> Int4,
-      word -> Text,
-      meaning_id -> Int4,
-      antonyms -> Array<Text>,
-      synonyms -> Array<Text>,
-  }
+// @generated automatically by Diesel CLI.
+
+diesel::table! {
+    definition (word_id) {
+        word_id -> Int4,
+        word -> Text,
+        meaning_id -> Int4,
+        antonyms -> Array<Nullable<Text>>,
+        synonyms -> Array<Nullable<Text>>,
+    }
 }
 
-table! {
-  meaning (meaning_id) {
-      meaning_id -> Int4,
-      word -> Text,
-      def -> Array<Text>,
-      keywords -> Array<Text>,
-  }
+diesel::table! {
+    meaning (meaning_id) {
+        meaning_id -> Int4,
+        word -> Text,
+        def -> Array<Nullable<Text>>,
+        keywords -> Array<Nullable<Text>>,
+    }
 }
 
-joinable!(definition -> meaning (meaning_id));
+diesel::joinable!(definition -> meaning (meaning_id));
 
-allow_tables_to_appear_in_same_query!(
-  definition,
-  meaning,
+diesel::allow_tables_to_appear_in_same_query!(
+    definition,
+    meaning,
 );
