@@ -12,7 +12,7 @@ pub fn establish_connection() -> PgConnection {
 }
 
 pub fn insert_definition<'a>(
-    conn: &PgConnection,
+    conn: &mut PgConnection,
     new_def: NewDefinition<'a>,
 ) -> Result<(), String> {
     use super::schema::definition::dsl::*;
@@ -49,7 +49,7 @@ pub fn insert_meaning(conn: &mut PgConnection, new_meaning: NewMeaning) -> Resul
     }
 }
 
-pub fn get_def(conn: &PgConnection, new_word: String) -> Result<Vec<Definition>, String> {
+pub fn get_def(conn: &mut PgConnection, new_word: String) -> Result<Vec<Definition>, String> {
     use super::schema::definition::dsl::*;
     let defn: Result<Vec<Definition>, Error> = definition
         .filter(word.eq(new_word))
@@ -64,13 +64,12 @@ pub fn get_def(conn: &PgConnection, new_word: String) -> Result<Vec<Definition>,
     }
 }
 
-pub fn get_mean(conn: &PgConnection, word_query: String) -> Result<Vec<Meaning>, String> {
+pub fn get_mean(conn: &mut PgConnection, word_query: String) -> Result<Vec<Meaning>, String> {
     use super::schema::meaning::dsl::*;
     let def_mean: Result<Vec<Meaning>, Error> = meaning
         .filter(word.eq(word_query))
         .limit(1)
         .load::<Meaning>(conn);
-
 
     match def_mean {
         Ok(t) => return Ok(t),
@@ -80,8 +79,8 @@ pub fn get_mean(conn: &PgConnection, word_query: String) -> Result<Vec<Meaning>,
 
 pub fn delete_word(new_word: String) -> Result<usize, String> {
     use super::schema::meaning::dsl::*;
-    let conn = establish_connection();
-    match diesel::delete(meaning.filter(word.eq(new_word))).execute(&conn) {
+    let mut conn = establish_connection();
+    match diesel::delete(meaning.filter(word.eq(new_word))).execute(&mut conn) {
         Ok(t) => Ok(t),
         Err(_) => Err(String::from(format!("Word not found"))),
     }
@@ -91,7 +90,7 @@ pub fn get_result(
     conn: &mut PgConnection,
     query_word: String,
 ) -> Result<(Definition, Meaning), String> {
-    let defin = get_def(conn, query_word.clone())?;
+    let defin: Vec<Definition> = get_def(conn, query_word.clone())?;
 
     if defin.len() == 0 {
         return Err("Cannot find definition".to_string());
@@ -99,4 +98,20 @@ pub fn get_result(
     let mean = get_mean(conn, query_word)?;
 
     return Ok((defin[0].clone(), mean[0].clone()));
+}
+
+pub fn search_words(query: String) -> Result<Vec<String>, String> {
+    use super::schema::definition::dsl::*;
+    let mut conn = establish_connection();
+
+    let words: Result<Vec<String>, Error> = definition
+        .select(word)
+        .filter(word.like(format!("%{}%", query.to_uppercase())))
+        .limit(10)
+        .load::<String>(&mut conn);
+
+    match words {
+        Ok(t) => Ok(t),
+        Err(e) => return Err(format!("{}", e)),
+    }
 }
