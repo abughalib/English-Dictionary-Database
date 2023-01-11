@@ -84,7 +84,7 @@ pub async fn query_words(query: web::Json<SearchWord>) -> HttpResponse {
         Ok(words) => HttpResponse::Ok()
             .content_type("application/json")
             .json(web::Json(words)),
-        Err(_e) => HttpResponse::NotFound().body(String::from(format!(
+        Err(_e) => HttpResponse::NoContent().body(String::from(format!(
             "Cannnot find words starting with {}",
             query.word
         ))),
