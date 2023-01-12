@@ -20,6 +20,8 @@ pub struct Meaning {
     keywords: Vec<String>,
 }
 
+const TOTAL_NO_OF_WORDS: usize = 121340;
+
 pub fn load_json() {
     let mut words = File::open("assets/dict_words.txt")
         .ok()
@@ -45,8 +47,8 @@ pub fn load_json() {
         .ok()
         .expect("Failed to load json from str");
 
-    init_progress_bar(202381);
-    set_progress_bar_action("Populating...: ", Color::Green, Style::Bold);
+    init_progress_bar(TOTAL_NO_OF_WORDS);
+    set_progress_bar_action("Populating Database: ", Color::Green, Style::Bold);
 
     for word in words_str.split_whitespace() {
         if word_char
