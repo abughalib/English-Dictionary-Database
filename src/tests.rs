@@ -1,11 +1,16 @@
 #[cfg(test)]
 mod tests {
 
-    use crate::models::QueryWord;
+    use crate::models::{NewDefinition, NewMeaning};
     use crate::routes::*;
+    use crate::{database_op::establish_connection, models::QueryWord};
     use actix_web::{http::StatusCode, web::Json};
+    use diesel::result::Error;
+    use diesel::Connection;
+    use serial_test::serial;
 
     #[actix_rt::test]
+    #[serial]
     async fn test_index() {
         let resp = index().await;
 
@@ -18,6 +23,7 @@ mod tests {
     }
 
     #[actix_rt::test]
+    #[serial]
     async fn test_json_query_page_meaning_not_found() {
         let info = QueryWord {
             word: "ejgiofdpsoigs8943t34543".to_string(),
@@ -29,64 +35,72 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_database_insertion() {
-        // let mut conn = establish_connection();
-        // let new_meaning = NewMeaning{
-        //   word: "some_unknown_word",
-        //   def: vec!["Unknown", "Definition not known"],
-        //   keywords: vec!["unknown"]
-        // };
+        let mut conn = establish_connection();
+        let mut conn2 = establish_connection();
 
-        //   use crate::schema::meaning::dsl::meaning;
-        //   use crate::schema::definition::dsl::definition;
+        let new_meaning = NewMeaning {
+            word: "some_unknown_word",
+            def: vec!["Unknown", "Definition not known"],
+            keywords: vec!["unknown"],
+        };
 
-        //   conn.test_transaction::<_, Error, _>(|_| {
-        //     diesel::insert_into(meaning)
-        //     .values(new_meaning)
-        //     .execute(&mut conn).ok();
+        use crate::schema::definition::dsl::definition;
+        use crate::schema::meaning::dsl::meaning;
+        use diesel::RunQueryDsl;
 
-        //     Ok(())
-        //   });
+        conn.test_transaction::<_, Error, _>(|_| {
+            diesel::insert_into(meaning)
+                .values(new_meaning)
+                .execute(&mut conn2)
+                .ok();
+            Ok(())
+        });
 
-        //   let new_def = NewDefinition{
-        //     word: "some_unknown_word",
-        //     meaning_id: &1i32,
-        //     synonyms: vec!["if any"],
-        //     antonyms: vec!["if any"],
-        //   };
+        let new_def = NewDefinition {
+            word: "some_unknown_word",
+            meaning_id: &1i32,
+            synonyms: vec!["if any"],
+            antonyms: vec!["if any"],
+        };
 
-        //   conn.test_transaction::<_, Error, _>(|_| {
-        //     diesel::insert_into(definition)
-        //     .values(new_def)
-        //     .execute(&mut conn).ok();
+        conn.test_transaction::<_, Error, _>(|_| {
+            diesel::insert_into(definition)
+                .values(new_def)
+                .execute(&mut conn2)
+                .ok();
 
-        //     Ok(())
-        //   });
+            Ok(())
+        });
+    }
 
-        // }
+    #[test]
+    #[serial]
+    fn test_database_deletion() {
+        let mut conn = establish_connection();
+        let mut conn2 = establish_connection();
 
-        // #[test]
-        // fn test_database_deletion(){
-        //   let mut conn = establish_connection();
+        use crate::schema::definition::dsl::{definition, word_id};
+        use crate::schema::meaning::dsl::{meaning, meaning_id};
+        use diesel::prelude::*;
 
-        //   use crate::schema::meaning::dsl::{meaning, meaning_id};
-        //   use crate::schema::definition::dsl::{definition, word_id};
-        //   use diesel::prelude::*;
+        conn.test_transaction::<_, Error, _>(|_| {
+            diesel::delete(meaning)
+                .filter(meaning_id.eq(1))
+                .execute(&mut conn2)
+                .ok();
 
-        //   conn.test_transaction::<_, Error, _>(|_| {
-        //     diesel::delete(meaning)
-        //     .filter(meaning_id.eq(1))
-        //     .execute(&mut conn).ok();
+            Ok(())
+        });
 
-        //     Ok(())
-        //   });
+        conn.test_transaction::<_, Error, _>(|_| {
+            diesel::delete(definition)
+                .filter(word_id.eq(1))
+                .execute(&mut conn2)
+                .ok();
 
-        //   conn.test_transaction::<_, Error, _>(|_| {
-        //     diesel::delete(definition)
-        //     .filter(word_id.eq(1))
-        //     .execute(&mut conn).ok();
-
-        //     Ok(())
-        //   });
+            Ok(())
+        });
     }
 }

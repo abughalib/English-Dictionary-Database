@@ -1,7 +1,7 @@
+use progress_bar::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{fs::File, io::Read};
-use progress_bar::*;
 
 use dictionary_server::{
     database_op::{establish_connection, insert_definition, insert_meaning},
@@ -46,7 +46,7 @@ pub fn load_json() {
         .expect("Failed to load json from str");
 
     init_progress_bar(202381);
-    set_progress_bar_action("Populating Database: ", Color::Green, Style::Bold);
+    set_progress_bar_action("Populating...: ", Color::Green, Style::Bold);
 
     for word in words_str.split_whitespace() {
         if word_char
@@ -69,7 +69,6 @@ pub fn load_json() {
             );
         }
 
-        
         let meaning_id =
             insert_parsed_meaning(word.to_string().clone(), dict_json[word]["meaning"].clone());
         insert_parsed_definition(
@@ -118,7 +117,7 @@ fn insert_parsed_meaning<'a>(word: String, meaning: Value) -> i32 {
         Err(e) => {
             // panic!("Cannot insert value: {:?}", e);
             println!("Cannot insert value: {e}");
-            print! ("\x1B[2J\x1B[1;1H");
+            print!("\x1B[2J\x1B[1;1H");
             -1
         }
     }
@@ -155,9 +154,7 @@ fn insert_parsed_definition<'a>(word: String, meaning_id: &i32, dict: Value) {
     };
 
     match insert_definition(&mut conn, new_def) {
-        Ok(_index) => {
-        
-        },
+        Ok(_index) => {}
         Err(e) => {
             println!("{e}");
         }
